@@ -1,0 +1,6 @@
+Data/
+Results/
+Figures/
+*.pyc
+*.code-workspace
+.vscode/

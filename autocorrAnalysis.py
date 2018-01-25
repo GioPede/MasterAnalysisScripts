@@ -13,7 +13,6 @@ class Autocorrelation:
                                             data.topChargeMatrix[i, k:data.params.confNum]]))[0,1]
                 self.autocorrMatrixEnergy[i,k] = np.corrcoef(np.array([data.topChargeMatrix[i, 0:data.params.confNum-k], \
                                             data.topChargeMatrix[i, k:data.params.confNum]]))[0,1]
-            print i
 
     def plotAutocorrelation(self, folder, step="initial"):
         if step == "initial":

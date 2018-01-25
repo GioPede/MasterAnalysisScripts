@@ -3,9 +3,9 @@ import analysisUtils as utils
 import latticePlotter as latplot
 from flowData import FlowDataReader
 from flowResampler import FlowResampler
-from autocorrAnalysis import Autocorrelation 
+from autocorrAnalysis import Autocorrelation
 
-
+ 
 # Plot and Save Flowed Data
 def basicAnalysis(data, dataTag, folders):
     flow.plotData(data, folders.figures[dataTag], suffix="_avg")
@@ -51,23 +51,24 @@ def autocorrelationAnalysis(data, dataTag, folders, resampler=None):
 
 if __name__ == '__main__':
     latplot.init()
-    dataSetTags = ["24_b6.00", "28_b6.10", "32_b6.20", "48_b6.45"]
+    #dataSetTags = ["24_b6.00", "28_b6.10", "32_b6.20", "48_b6.45"]
     #dataSetTags = ["28auto", "28autotest"]
+    dataSetTags = ["28_b6.10"]
     folders = utils.Folders(dataSetTags)
 
     for dataTag in dataSetTags:
         pass
         # Load Data
-        #data = FlowDataReader(folders.data[dataTag])
-        #basicAnalysis(data, dataTag, folders)
-        #resampleAnalysis(data, dataTag, folders)
+        data = FlowDataReader(folders.data[dataTag])
+        basicAnalysis(data, dataTag, folders)
+        resampleAnalysis(data, dataTag, folders)
         #singleConfAnalysis(data, dataTag, folders)
-        #topChargeHistograms(data, dataTag, folders)
-        #MCHistoryAnalysis(data, dataTag, folders)
-        #autocorrelationAnalysis(data, dataTag, folders)
+        topChargeHistograms(data, dataTag, folders)
+        MCHistoryAnalysis(data, dataTag, folders)
+        autocorrelationAnalysis(data, dataTag, folders)
 
     params = utils.getParameters(folders, dataSetTags)
-    flow.plotGathered(dataSetTags, params, folders, suffix="_avg", show=False)
-    flow.plotGathered(dataSetTags, params, folders, suffix="_boot", show=True)
-    flow.plotGathered(dataSetTags, params, folders, suffix="_jkkf", show=True)
+    flow.plotGathered(dataSetTags, params, folders, suffix="_avg")
+    flow.plotGathered(dataSetTags, params, folders, suffix="_boot")
+    flow.plotGathered(dataSetTags, params, folders, suffix="_jkkf")
     
