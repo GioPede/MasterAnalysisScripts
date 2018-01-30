@@ -1,5 +1,12 @@
 import numpy as np
+import scipy.optimize as optimize
 import latticePlotter as latplot
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
 
 # PLOT COLLECTIVE DATA
 def saveData(data, folder, filename, suffix=""):
@@ -121,3 +128,43 @@ def plotGathered(dataSetTags, params, folders, suffix="", show=False):
                                 title="Mean Energy Density", \
                                 fileName=folders.figuresRoot + "/etsq" + suffix,\
                                 show=show)
+
+def makeCollectivePlots(dataSetTags, folders, params):
+    print "Plotting Cumulative Plots..."
+    plotGathered(dataSetTags, params, folders, suffix="_avg")
+    plotGathered(dataSetTags, params, folders, suffix="_boot")
+    plotGathered(dataSetTags, params, folders, suffix="_jkkf")
+
+def energyContinuumLimit(dataSetTags, folders, params):
+    linear = lambda x, a, b: a*x + b
+    labels = []
+    for suffix in ["_avg", "_boot", "_jkkf"]:
+        xvals = []
+        yvals = []
+        yvalsStd = []
+        for dataSet in dataSetTags:
+            results = np.loadtxt(folders.results + dataSet + suffix + ".txt")
+            energyTauSquare = results[:,8] 
+            energyTauSquareStd = results[:,9] 
+            tauR0 = results[:,10]
+            labels.append(params[dataSet].label)
+
+            fitIndexes = np.where(np.logical_and(energyTauSquare>=0.27, energyTauSquare<=0.33))
+            fitDataX = np.take(tauR0, fitIndexes)[0,:]
+            fitDataY = np.take(energyTauSquare, fitIndexes)[0,:]
+            fitDataYErr = np.take(energyTauSquareStd, fitIndexes)[0,:]
+
+            sns.set()
+            coeffs, matcov = optimize.curve_fit(linear, fitDataX, fitDataY, p0=[3,0], sigma=fitDataYErr)
+            t0 = (0.3 - coeffs[1]) / coeffs[0] / 4.0
+
+            xvals.append((params[dataSet].latSpacing * 2)**2)
+            yvals.append(np.sqrt(8*t0) *2 )
+
+        coeffs, matcov = optimize.curve_fit(linear, xvals, yvals, p0=[0,1],)# sigma=yvalsStd)
+        print yvals
+        print coeffs, matcov
+        plt.ylim([0.89, 0.97])
+        plt.errorbar(xvals,y=yvals, yerr=np.zeros(len(yvals)), fmt=".", color=sns.xkcd_rgb["denim blue"], lw=1)
+        plt.plot([0,0.05],[linear(0, coeffs[0], coeffs[1]),linear(0.05, coeffs[0], coeffs[1])], "-", color=sns.xkcd_rgb["pale red"], lw=0.5)
+        plt.show()

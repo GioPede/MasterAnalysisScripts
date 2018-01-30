@@ -48,27 +48,30 @@ def autocorrelationAnalysis(data, dataTag, folders, resampler=None):
         flow.plotData(resampler.bootstrap.data, folders["figuresFolder"], suffix="_autocorr_boot")
         flow.saveData(resampler.bootstrap.data, folders["resultsFolder"], suffix="_autocorr_boot")
     """
+def collectiveAnalysis(dataSetTags, folders):
+    params = utils.getParameters(folders, dataSetTags)
+    flow.makeCollectivePlots(dataSetTags, folders, params)
+    #flow.energyContinuumLimit(dataSetTags, folders, params)
+    
 
 if __name__ == '__main__':
     latplot.init()
     #dataSetTags = ["24_b6.00", "28_b6.10", "32_b6.20", "48_b6.45"]
     #dataSetTags = ["28auto", "28autotest"]
-    dataSetTags = ["28_b6.10"]
+    dataSetTags = ["24_b6.00", "28_b6.10_N400", "32_b6.20",]# "48_b6.45"]
+    #dataSetTags = ["48_b6.45"]
     folders = utils.Folders(dataSetTags)
 
     for dataTag in dataSetTags:
         pass
         # Load Data
-        data = FlowDataReader(folders.data[dataTag])
-        basicAnalysis(data, dataTag, folders)
-        resampleAnalysis(data, dataTag, folders)
+        #data = FlowDataReader(folders.data[dataTag])
+        #basicAnalysis(data, dataTag, folders)
+        #resampleAnalysis(data, dataTag, folders)
         #singleConfAnalysis(data, dataTag, folders)
-        topChargeHistograms(data, dataTag, folders)
-        MCHistoryAnalysis(data, dataTag, folders)
-        autocorrelationAnalysis(data, dataTag, folders)
+        #topChargeHistograms(data, dataTag, folders)
+        #MCHistoryAnalysis(data, dataTag, folders)
+        #autocorrelationAnalysis(data, dataTag, folders)
 
-    params = utils.getParameters(folders, dataSetTags)
-    flow.plotGathered(dataSetTags, params, folders, suffix="_avg")
-    flow.plotGathered(dataSetTags, params, folders, suffix="_boot")
-    flow.plotGathered(dataSetTags, params, folders, suffix="_jkkf")
+    collectiveAnalysis(dataSetTags, folders)
     

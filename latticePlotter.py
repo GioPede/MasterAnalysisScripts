@@ -46,6 +46,7 @@ def plotMCTopCharge(steps, data, title="", fileName="", show=False):
 def plotFlowTopChargeTotal(t, data, errorbars, labels, title="", fileName="", show=False):
     plt.ylabel('$\mathcal{Q}$')
     plt.ylim([-15, 15])
+    plt.xlim([0,0.9])
     plotFlowTotal(t, data, errorbars, labels, title=title, fileName=fileName, show=show)
 
 def plotFlowTopSuscepTotal(t, data, errorbars, labels, title="", fileName="", show=False):
@@ -57,14 +58,16 @@ def plotFlowEnergyTauSquareTotal(t, data, errorbars, labels, title="", fileName=
     plt.ylabel('$t^2\langle E \\rangle$')
     plt.plot([0,0.35], [0.3,0.3], "--", lw=0.5)
     plt.ylim([0,1.2])
+    plt.xlim([0,0.4])
     plotFlowTotal(t, data, errorbars, labels, title="", fileName=fileName, xlabel="$t/r_0^2$", show=show)
 
 def plotFlowTotal(t, data, errorbars, labels, title="", fileName="", xlabel=None, show=False):
+    colors = ["red", "green", "blue", "yellow"]
     for i in xrange(len(t)):
-        plt.errorbar(t[i], y=data[i], yerr=errorbars[i], label=labels[i] ,fmt=".", lw=1)
+        plt.plot(t[i], data[i], "-", label=labels[i] , lw=1, color=colors[i])
+        plt.fill_between(t[i], data[i] - errorbars[i], data[i] + errorbars[i], alpha=0.3, color=colors[i])
         #plt.plot(t[i], data[i], "-", lw=0.5)
     plt.title(title)
-    plt.xlim([0,0.9])
     if xlabel:
         plt.xlabel(xlabel)
     else:
