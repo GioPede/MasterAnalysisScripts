@@ -2,15 +2,15 @@ from copy import deepcopy
 from flowData import FlowDataReader
 import latticePlotter as latplot
 import numpy as np
+from tqdm import trange
+from discretizationEffects import continuumLimit
 
 class FlowResampler:
     def __init__(self, data, bootstrap=True, jacknife=True, bootSamples=500):
         if bootstrap:
-            print "Bootstrapping Observables..."
             self.bootstrap = self.Bootstrap(data, bootSamples)
         if jacknife:
-            print "Jackknifing Observables..."
-            self.jacknife = self.Jacknife(data)
+            self.jackknife = self.Jackknife(data)
     
     class Bootstrap:
         def __init__(self, data, nBoots):
@@ -24,11 +24,13 @@ class FlowResampler:
             topCharBootstrap = np.zeros((self.data.params.nFlows, self.nBoots))
             topCharSquareBootstrap = np.zeros((self.data.params.nFlows, self.nBoots))
             energyBootstrap = np.zeros((self.data.params.nFlows, self.nBoots))
+            energyBootMatrix = np.zeros((self.data.params.nFlows, self.nBoots))
 
-            for i in xrange(self.data.params.nFlows):
+            for i in trange(self.data.params.nFlows, desc="Bootstrap...".ljust(20), leave=False):
                 for j in xrange(self.nBoots):
                     plaqBootstrap[i,j] = np.average(self.data.plaquetteMatrix[i][self.indexLists[j]])
                     energyBootstrap[i,j] = np.average(self.data.energyMatrix[i][self.indexLists[j]])
+                    energyBootMatrix[i,j] = energyBootstrap[i,j] * self.data.tau[i]*self.data.tau[i] / self.data.params.volume 
                     topCharBootstrap[i,j] = np.average(self.data.topChargeMatrix[i][self.indexLists[j]])
                     topCharSquareBootstrap[i,j] = np.average(self.data.topChargeMatrix[i][self.indexLists[j]]*self.data.topChargeMatrix[i][self.indexLists[j]])
             
@@ -41,9 +43,11 @@ class FlowResampler:
             self.data.topSuscep = np.average(topCharSquareBootstrap,axis=1)**(0.25)*self.data.params.chiConst
             self.data.topSuscepStd	= np.std(topCharSquareBootstrap**(0.25)*self.data.params.chiConst,axis=1)
             self.data.energyTauSquare = np.abs(np.average(energyBootstrap,axis=1))*self.data.tau*self.data.tau / self.data.params.volume 
-            self.data.energyTauSquareStd	= np.std(energyBootstrap,axis=1)*self.data.tau*self.data.tau / self.data.params.volume  
+            self.data.energyTauSquareStd	= np.std(energyBootstrap,axis=1)*self.data.tau*self.data.tau / self.data.params.volume 
+            continuumLimit(self.data.tauR0, np.abs(energyBootMatrix), self.data.params)
+            print "Bootstrap...".ljust(20), "DONE"
 
-    class Jacknife:
+    class Jackknife:
         def __init__(self, data):
             self.data = deepcopy(data)
             self.createJackknife()
@@ -54,12 +58,12 @@ class FlowResampler:
             topCharSquareJackknife = np.zeros((self.data.params.nFlows, self.data.params.confNum))
             energyJackknife = np.zeros((self.data.params.nFlows, self.data.params.confNum))
 
-            for i in xrange(self.data.params.nFlows):
+            for i in trange(self.data.params.nFlows, desc="Jackknife...".ljust(20), leave=False):
                 for j in xrange(self.data.params.confNum):
-                    plaqJackknife[i,j] = np.average(np.delete(self.data.plaquetteMatrix[i,:], j))
-                    energyJackknife[i,j] = np.average(np.delete(self.data.energyMatrix[i,:], j))
-                    topCharJackknife[i,j] = np.average(np.delete(self.data.topChargeMatrix[i,:], j))
-                    topCharSquareJackknife[i,j] = np.average(np.delete(self.data.topChargeMatrix[i,:], j)*np.delete(self.data.topChargeMatrix[i,:], j))
+                    plaqJackknife[i,j] = np.average(np.concatenate((self.data.plaquetteMatrix[i,:j], self.data.plaquetteMatrix[i,(j+1):])))
+                    energyJackknife[i,j] = np.average(np.concatenate((self.data.energyMatrix[i,:j], self.data.energyMatrix[i,j+1:])))
+                    topCharJackknife[i,j] = np.average(np.concatenate((self.data.topChargeMatrix[i,:j], self.data.topChargeMatrix[i,j+1:])))
+                    topCharSquareJackknife[i,j] = np.average(np.concatenate((self.data.topChargeMatrix[i,:j], self.data.topChargeMatrix[i,j+1:]))*np.concatenate((self.data.topChargeMatrix[i,:j], self.data.topChargeMatrix[i,j+1:])))
             
             self.data.plaquette = np.average(plaqJackknife,axis=1)
             self.data.plaquetteStd	= np.std(plaqJackknife,axis=1)
@@ -71,5 +75,6 @@ class FlowResampler:
             self.data.topSuscepStd	= np.std(topCharSquareJackknife**(0.25)*self.data.params.chiConst,axis=1)
             self.data.energyTauSquare = np.abs(np.average(energyJackknife,axis=1))*self.data.tau*self.data.tau / self.data.params.volume 
             self.data.energyTauSquareStd	= np.std(energyJackknife,axis=1)*self.data.tau*self.data.tau  / self.data.params.volume 
+            print "Jackknife...".ljust(20), "DONE"
 
     

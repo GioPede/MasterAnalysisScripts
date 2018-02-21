@@ -2,6 +2,7 @@ import os as os
 import sys as sys
 import json as json
 import numpy as np 
+from tqdm import tqdm
 
 class Params:
     def __init__(self):
@@ -36,9 +37,7 @@ class FlowDataReader:
             json.dump(self.params.__dict__, outfile, indent = 4)
         print "Found Dataset with these Properties...\n"
         print self.params
-        print "Loading Data..."
         self.loadData(dir)
-        print "Computing Averages..."
         self.averageData()
     
     def checkInputFolder(self, dir):
@@ -56,8 +55,7 @@ class FlowDataReader:
         self.params.confNum = len(os.listdir(dir + "/PerGF"))
 
     def createPerTauData(self, dir):
-        print "Creating per flow time data..."
-        for file in sorted(os.listdir(dir + "/PerGF")):
+        for file in tqdm(sorted(os.listdir(dir + "/PerGF")), desc="Parsing Data...".ljust(20), leave=False):
             if file.endswith(".dat"):
                 data = np.loadtxt(dir + "/PerGF/"+file, skiprows=1)
                 for i in data[:]:
@@ -95,12 +93,13 @@ class FlowDataReader:
         self.topChargeMatrix = np.zeros((self.params.nFlows, self.params.confNum))
         self.energyMatrix = np.zeros((self.params.nFlows, self.params.confNum))
         self.topChargeSquare = np.zeros((self.params.nFlows, self.params.confNum))
-        for i, file in enumerate(sorted(os.listdir(dir + "/PerTau"))):
+        for i, file in enumerate(tqdm(sorted(os.listdir(dir + "/PerTau")), desc="Lodaing Data...".ljust(20), leave=False)):
             data = np.loadtxt(dir + "/PerTau/" + file)
             self.plaquetteMatrix[i] = data[:,1]
             self.topChargeMatrix[i] = data[:,2]
             self.energyMatrix[i] = data[:,3] / 64
             self.topChargeSquare[i] = data[:,2] * data[:,2]
+        print "Lodaing Data...".ljust(20), "DONE"
 
     def averageData(self):
         self.plaquette = np.average(self.plaquetteMatrix, axis=1)

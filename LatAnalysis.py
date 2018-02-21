@@ -4,6 +4,7 @@ import latticePlotter as latplot
 from flowData import FlowDataReader
 from flowResampler import FlowResampler
 from autocorrAnalysis import Autocorrelation
+from discretizationEffects import plotContLimit
 
  
 # Plot and Save Flowed Data
@@ -22,8 +23,9 @@ def resampleAnalysis(data, dataTag, folders, bootstrap=True, jackknife=True):
 
     if jackknife:
         # Plot and Save Jacknife Data
-        flow.plotData(resampler.jacknife.data, folders.figures[dataTag], suffix="_jkkf")
-        flow.saveData(resampler.jacknife.data, folders.results, dataTag, suffix="_jkkf")
+        flow.plotData(resampler.jackknife.data, folders.figures[dataTag], suffix="_jkkf")
+        flow.saveData(resampler.jackknife.data, folders.results, dataTag, suffix="_jkkf")
+    return resampler
 
 # Plots for Single Configuration Data
 def singleConfAnalysis(data, dataTag, folders):
@@ -40,38 +42,37 @@ def autocorrelationAnalysis(data, dataTag, folders, resampler=None):
     autocorrData = Autocorrelation(data)
     autocorrData.plotAutocorrelation(folders.figures[dataTag], step="initial")
     autocorrData.plotAutocorrelation(folders.figures[dataTag], step="final")
-    """
     if resampler:
-        autocorrData.adjustError(resampler)
-        flow.plotData(resampler.jacknife.data, folders["figuresFolder"], suffix="_autocorr_jkkf")
-        flow.saveData(resampler.jacknife.data, folders["resultsFolder"], suffix="_autocorr_jkkf")
-        flow.plotData(resampler.bootstrap.data, folders["figuresFolder"], suffix="_autocorr_boot")
-        flow.saveData(resampler.bootstrap.data, folders["resultsFolder"], suffix="_autocorr_boot")
-    """
+        autocorrData.adjustError(data, resampler)
+        flow.plotData(resampler.jackknife.data, folders.figures[dataTag], suffix="_autocorr_jkkf")
+        flow.saveData(resampler.jackknife.data, folders.results, dataTag, suffix="_jkkf")
+        flow.plotData(resampler.bootstrap.data, folders.figures[dataTag], suffix="_autocorr_boot")
+        flow.saveData(resampler.bootstrap.data, folders.results, dataTag, suffix="_boot")
+    else:
+        autocorrData.adjustError(data)
+
 def collectiveAnalysis(dataSetTags, folders):
     params = utils.getParameters(folders, dataSetTags)
     flow.makeCollectivePlots(dataSetTags, folders, params)
     #flow.energyContinuumLimit(dataSetTags, folders, params)
+    #flow.lambdaFit(dataSetTags, folders, params)
     
 
 if __name__ == '__main__':
     latplot.init()
-    #dataSetTags = ["24_b6.00", "28_b6.10", "32_b6.20", "48_b6.45"]
-    #dataSetTags = ["28auto", "28autotest"]
-    dataSetTags = ["24_b6.00", "28_b6.10_N400", "32_b6.20",]# "48_b6.45"]
-    #dataSetTags = ["48_b6.45"]
+    dataSetTags = ["24_b6.00", "28_b6.10", "32_b6.20", ]#"48_b6.45"]
     folders = utils.Folders(dataSetTags)
 
     for dataTag in dataSetTags:
-        pass
         # Load Data
-        #data = FlowDataReader(folders.data[dataTag])
+        data = FlowDataReader(folders.data[dataTag])
         #basicAnalysis(data, dataTag, folders)
-        #resampleAnalysis(data, dataTag, folders)
+        resampler = resampleAnalysis(data, dataTag, folders)
         #singleConfAnalysis(data, dataTag, folders)
         #topChargeHistograms(data, dataTag, folders)
         #MCHistoryAnalysis(data, dataTag, folders)
-        #autocorrelationAnalysis(data, dataTag, folders)
-
+        #autocorrelationAnalysis(data, dataTag, folders, resampler=resampler)
+        print "\n\n"
+    plotContLimit()
     collectiveAnalysis(dataSetTags, folders)
     

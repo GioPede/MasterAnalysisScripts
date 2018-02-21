@@ -58,7 +58,7 @@ def plotFlowEnergyTauSquareTotal(t, data, errorbars, labels, title="", fileName=
     plt.ylabel('$t^2\langle E \\rangle$')
     plt.plot([0,0.35], [0.3,0.3], "--", lw=0.5)
     plt.ylim([0,1.2])
-    plt.xlim([0,0.4])
+    #plt.xlim([0,0.4])
     plotFlowTotal(t, data, errorbars, labels, title="", fileName=fileName, xlabel="$t/r_0^2$", show=show)
 
 def plotFlowTotal(t, data, errorbars, labels, title="", fileName="", xlabel=None, show=False):
@@ -75,7 +75,7 @@ def plotFlowTotal(t, data, errorbars, labels, title="", fileName="", xlabel=None
     plt.legend()
 
     if fileName:
-        plt.savefig(fileName + ".eps", dpi=300)
+        plt.savefig(fileName + ".pdf")
         plt.savefig(fileName + ".png", dpi=300)
     if show:
         plt.show()
