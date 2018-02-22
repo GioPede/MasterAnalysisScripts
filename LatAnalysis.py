@@ -4,7 +4,7 @@ import latticePlotter as latplot
 from flowData import FlowDataReader
 from flowResampler import FlowResampler
 from autocorrAnalysis import Autocorrelation
-from discretizationEffects import plotContLimit
+from discretizationEffects import plotContLimit, simpleContLimit
 
  
 # Plot and Save Flowed Data
@@ -66,13 +66,14 @@ if __name__ == '__main__':
     for dataTag in dataSetTags:
         # Load Data
         data = FlowDataReader(folders.data[dataTag])
-        #basicAnalysis(data, dataTag, folders)
+        basicAnalysis(data, dataTag, folders)
         resampler = resampleAnalysis(data, dataTag, folders)
         #singleConfAnalysis(data, dataTag, folders)
         #topChargeHistograms(data, dataTag, folders)
         #MCHistoryAnalysis(data, dataTag, folders)
-        #autocorrelationAnalysis(data, dataTag, folders, resampler=resampler)
+        autocorrelationAnalysis(data, dataTag, folders, resampler=resampler)
         print "\n\n"
+        simpleContLimit(resampler.bootstrap.data)
     plotContLimit()
-    collectiveAnalysis(dataSetTags, folders)
+    #collectiveAnalysis(dataSetTags, folders)
     

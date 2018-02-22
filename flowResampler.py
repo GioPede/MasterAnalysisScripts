@@ -6,7 +6,7 @@ from tqdm import trange
 from discretizationEffects import continuumLimit
 
 class FlowResampler:
-    def __init__(self, data, bootstrap=True, jacknife=True, bootSamples=500):
+    def __init__(self, data, bootstrap=True, jacknife=True, bootSamples=200):
         if bootstrap:
             self.bootstrap = self.Bootstrap(data, bootSamples)
         if jacknife:
